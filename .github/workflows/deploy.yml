@@ -16,16 +16,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        # Use `npm install` so CI won't fail due to an incomplete package-lock.json
+        run: npm install
 
       - name: Create env for production
-        # This writes .env.production so CRA picks up REACT_APP_ vars at build.
+        # Create .env.production so Create React App embeds your REACT_APP_* vars during build.
+        env:
+          SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
         run: |
-          echo "REACT_APP_SUPABASE_URL=${{ secrets.REACT_APP_SUPABASE_URL }}" >> .env.production
-          echo "REACT_APP_SUPABASE_ANON_KEY=${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}" >> .env.production
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_KEY" ]; then
+            echo "One of the required secrets is missing. Please add REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY in repository secrets."
+            exit 1
+          fi
+          echo "REACT_APP_SUPABASE_URL=$SUPABASE_URL" > .env.production
+          echo "REACT_APP_SUPABASE_ANON_KEY=$SUPABASE_KEY" >> .env.production
 
       - name: Build
         run: npm run build
@@ -35,3 +42,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
+
