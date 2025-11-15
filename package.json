@@ -1,6 +1,7 @@
 {
   "name": "simple-restaurant-app",
   "version": "1.0.0",
+  "homepage": "./",
   "private": true,
   "scripts": {
     "start": "react-scripts start",
